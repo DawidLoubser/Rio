@@ -1,0 +1,18 @@
+#Maven Output
+###################
+*.class
+target
+
+#IDE Files   
+###################
+#IntelliJ:
+*.ipr
+*.iml
+*.iws
+
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
