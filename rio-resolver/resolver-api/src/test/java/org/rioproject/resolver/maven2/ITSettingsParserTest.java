@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.rioproject.resolver.RemoteRepository;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -28,7 +29,7 @@ import java.util.List;
 public class ITSettingsParserTest {
 
     @Test
-    public void parserTest() {
+    public void parserTest() throws IOException {
         File settingsFile = new File("src/test/conf/mirrored-settings.xml");
         SettingsParser parser = new SettingsParser();
         Settings settings = parser.parse(settingsFile);
@@ -67,14 +68,11 @@ public class ITSettingsParserTest {
             
             i = print(rc, i, rrs.size());
         }
-        String m2Home = System.getenv().get("M2_HOME");
-        Assert.assertNotNull(m2Home);
-        File defSettings = new File(m2Home, "conf/settings.xml");
-        parser.parse(defSettings);
+        parser.parse(getMavenSettingsFile());
     }
 
     @Test
-    public void parserTest2() {
+    public void parserTest2() throws IOException {
         File settingsFile = new File("src/test/conf/jrsettings.xml");
         SettingsParser parser = new SettingsParser();
         Settings settings = parser.parse(settingsFile);
@@ -102,14 +100,11 @@ public class ITSettingsParserTest {
 
             i = print(rc, i, rrs.size());
         }
-        String m2Home = System.getenv().get("M2_HOME");
-        Assert.assertNotNull(m2Home);
-        File defSettings = new File(m2Home, "conf/settings.xml");
-        parser.parse(defSettings);
+        parser.parse(getMavenSettingsFile());
     }
 
     @Test
-    public void parserTest3() {
+    public void parserTest3() throws IOException {
         File settingsFile = new File(System.getProperty("user.home"), ".m2/settings.xml");
         SettingsParser parser = new SettingsParser();
         Settings settings = parser.parse(settingsFile);
@@ -137,10 +132,7 @@ public class ITSettingsParserTest {
 
             i = print(rc, i, rrs.size());
         }
-        String m2Home = System.getenv().get("M2_HOME");
-        Assert.assertNotNull(m2Home);
-        File defSettings = new File(m2Home, "conf/settings.xml");
-        parser.parse(defSettings);
+        parser.parse(getMavenSettingsFile());
     }
 
     private void printHeader(List<RemoteRepository> rrs, File settings) {
@@ -172,5 +164,29 @@ public class ITSettingsParserTest {
                 mirrored++;
         }
         return mirrored;
+    }
+
+
+    /** Gets the user's maven settings file (global or in home directory
+     * @throws IOException If no readable maven settings file exists
+     */
+    private File getMavenSettingsFile() throws IOException
+    {
+        // If maven home specified, first try that, otherwise try user home dir
+        String m2Home = System.getenv().get("M2_HOME");
+        File globalConfig = m2Home != null ? new File(m2Home, "conf/settings.xml") : new File("does not exist");
+        File userConfig = new File( new File( System.getProperty("user.home")), ".m2/settings.xml");
+        if (userConfig.exists() && userConfig.canRead())
+        {
+            return userConfig;
+        }
+        else if (globalConfig.exists() && globalConfig.canRead())
+        {
+            return globalConfig;
+        }
+        else
+        {
+            throw new IOException("Unable to find a usable Maven settings file (global or in user home directory)");
+        }
     }
 }
